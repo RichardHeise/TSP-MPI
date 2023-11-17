@@ -9,6 +9,7 @@
 int min_distance;
 int nb_towns;
 int rank, procs;
+int global_min_distance;
 
 typedef struct {
     int to_town;
@@ -50,11 +51,20 @@ int main(int argc, char **argv) {
 
     while (num_instances-- > 0) {
         double start_time, end_time;
-        start_time = get_time(); // Start time measurement
-        printf("%d\n", run_tsp());
-        end_time = get_time(); // End time measurement
-        printf("Total time: %.2f seconds\n", end_time - start_time);
-    }
+        if (rank == 0) {
+            start_time = get_time(); // Start time measurement
+        }
+
+        int local_min_distance = run_tsp();
+        // Use MPI_Reduce to find the minimum distance across all processes
+        MPI_Reduce(&local_min_distance, &global_min_distance, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+
+        if (rank == 0) {
+            end_time = get_time(); // End time measurement
+            printf("Total time: %.2f seconds\n", end_time - start_time);
+            printf("Global Minimum Distance: %d\n", global_min_distance);
+        }
+    }   
 
     MPI_Finalize();
     return 0;
@@ -66,10 +76,8 @@ void tsp(int depth, int current_length, int *path, int *paths) {
     if (current_length >= min_distance) return;
     if (depth == nb_towns) {
         current_length += dist_to_origin[path[nb_towns - 1]];
-				// ask master what is the min distance
         if (current_length < min_distance) {
             min_distance = current_length;
-						// send to master the min distance found
         }
         return;
     }
@@ -161,17 +169,25 @@ void init_tsp() {
 }
 
 int run_tsp() {
-    int i, *path, *paths;
+    int *path, *paths;
 
     init_tsp();
 
-    path = (int *)malloc(sizeof(int) * nb_towns);
-    paths = (int *)calloc(sizeof(int), nb_towns);
+    path = malloc(sizeof(int) * nb_towns);
+    paths = calloc(sizeof(int), nb_towns);
     path[0] = 0;
     paths[0] = 1;
 
-		// only calls tsp to workers, the master only controls the min distance
-    tsp(1, 0, path, paths);
+    for (int i = rank + 1; i < nb_towns; i += procs) {
+
+        path[1] = i;
+        paths[i] = 1;
+
+        tsp(2, dist_to_origin[i], path, paths);
+
+        paths[i] = 0;
+
+    }
 
     // Deallocate memory for non-zero rank processes
     free(dist_to_origin);
