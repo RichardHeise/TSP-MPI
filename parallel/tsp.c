@@ -60,14 +60,16 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+
 void tsp(int depth, int current_length, int *path, int *paths) {
     int i;
     if (current_length >= min_distance) return;
     if (depth == nb_towns) {
         current_length += dist_to_origin[path[nb_towns - 1]];
+				// ask master what is the min distance
         if (current_length < min_distance) {
             min_distance = current_length;
-            MPI_Bcast(&min_distance, 1, MPI_INT, 0, MPI_COMM_WORLD);
+						// send to master the min distance found
         }
         return;
     }
@@ -75,7 +77,7 @@ void tsp(int depth, int current_length, int *path, int *paths) {
     int town, me, dist;
     me = path[depth - 1];
 
-    for (i = rank; i < nb_towns; i+= procs) {
+    for (i = 0; i < nb_towns; i++) {
         town = d_matrix[me][i].to_town;
         if (!paths[town]) {
             path[depth] = town;
@@ -168,6 +170,7 @@ int run_tsp() {
     path[0] = 0;
     paths[0] = 1;
 
+		// only calls tsp to workers, the master only controls the min distance
     tsp(1, 0, path, paths);
 
     // Deallocate memory for non-zero rank processes
