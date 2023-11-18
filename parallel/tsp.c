@@ -61,8 +61,7 @@ int main(int argc, char **argv) {
 
         if (rank == 0) {
             end_time = get_time(); // End time measurement
-            printf("Total time: %.2f seconds\n", end_time - start_time);
-            printf("Global Minimum Distance: %d\n", global_min_distance);
+            printf("Tempo total: %.2f seconds\n", end_time - start_time);
         }
     }   
 
@@ -168,7 +167,7 @@ void init_tsp() {
     free(y);
 }
 
-int run_tsp() {
+int run_tsp(int start, int end) {
     int *path, *paths;
 
     init_tsp();
@@ -178,18 +177,14 @@ int run_tsp() {
     path[0] = 0;
     paths[0] = 1;
 
-    for (int i = rank + 1; i < nb_towns; i += procs) {
-
+    for (int i = start; i < end; i++) {
         path[1] = i;
         paths[i] = 1;
-
         tsp(2, dist_to_origin[i], path, paths);
-
         paths[i] = 0;
-
     }
 
-    // Deallocate memory for non-zero rank processes
+    // Deallocate memory for worker processes
     free(dist_to_origin);
     free(paths);
     free(path);
