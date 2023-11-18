@@ -61,14 +61,14 @@ int main(int argc, char **argv) {
 
         if (rank == 0) {
             end_time = get_time(); // End time measurement
-            printf("Tempo total: %.2f seconds\n", end_time - start_time);
+            printf("Total time: %.2f seconds\n", end_time - start_time);
+            printf("Global Minimum Distance: %d\n", global_min_distance);
         }
     }   
 
     MPI_Finalize();
     return 0;
 }
-
 
 void tsp(int depth, int current_length, int *path, int *paths) {
     int i;
@@ -167,7 +167,7 @@ void init_tsp() {
     free(y);
 }
 
-int run_tsp(int start, int end) {
+int run_tsp() {
     int *path, *paths;
 
     init_tsp();
@@ -177,6 +177,13 @@ int run_tsp(int start, int end) {
     path[0] = 0;
     paths[0] = 1;
 
+    int chunk_size = (nb_towns - 1) / procs + 1;
+    int start = rank * chunk_size + 1;
+    int end = (rank + 1) * chunk_size;
+
+    if (end > nb_towns)
+        end = nb_towns;
+
     for (int i = start; i < end; i++) {
         path[1] = i;
         paths[i] = 1;
@@ -184,7 +191,7 @@ int run_tsp(int start, int end) {
         paths[i] = 0;
     }
 
-    // Deallocate memory for worker processes
+    // Deallocate memory for non-zero rank processes
     free(dist_to_origin);
     free(paths);
     free(path);
