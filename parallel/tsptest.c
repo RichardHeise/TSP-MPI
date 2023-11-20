@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
 
         if (rank == 0) {
             end_time = get_time();
+            printf("%d\n", global_min_distance);
             printf("Tempo total: %.2f seconds\n", end_time - start_time);
         }
     }
