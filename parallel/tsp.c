@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
         if (rank == 0) {
             end_time = get_time(); // End time measurement
             printf("Tempo total: %.2f seconds\n", end_time - start_time);
+            printf("%d\n", local_min_distance);
         }
     }   
 
@@ -176,18 +177,15 @@ int run_tsp() {
     path[0] = 0;
     paths[0] = 1;
 
-    int chunk_size = (nb_towns - 1) / procs + 1;
-    int start = rank * chunk_size + 1;
-    int end = (rank + 1) * chunk_size;
+    for (int i = rank + 1; i < nb_towns; i += procs) {
 
-    if (end > nb_towns)
-        end = nb_towns;
-
-    for (int i = start; i < end; i++) {
         path[1] = i;
         paths[i] = 1;
+
         tsp(2, dist_to_origin[i], path, paths);
+
         paths[i] = 0;
+
     }
 
     // Deallocate memory for non-zero rank processes

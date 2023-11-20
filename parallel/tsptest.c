@@ -177,8 +177,8 @@ void request_steal() {
 
 int run_tsp() {
     int *path, *paths;
-    int *local_task_queue;
-    int local_task_queue_size = 0;
+    int *taskQ;
+    int taskQ_size = 0;
 
     init_tsp();
 
@@ -194,25 +194,25 @@ int run_tsp() {
     path[0] = 0;
     paths[0] = 1;
 
-    local_task_queue = malloc(sizeof(int) * chunk_size);
+    taskQ = malloc(sizeof(int) * chunk_size);
 
     for (int i = start; i < end; i++) {
-        local_task_queue[local_task_queue_size++] = i;
+        taskQ[taskQ_size++] = i;
     }
 
-    while (local_task_queue_size > 0) {
-        int current_task = local_task_queue[--local_task_queue_size];
+    while (taskQ_size > 0) {
+        int current_task = taskQ[--taskQ_size];
         path[1] = current_task;
         paths[current_task] = 1;
         tsp(2, dist_to_origin[current_task], path, paths);
         paths[current_task] = 0;
 
-        if (local_task_queue_size == 0) {
+        if (taskQ_size == 0) {
             request_steal();
         }
     }
 
-    free(local_task_queue);
+    free(taskQ);
     free(path);
     free(paths);
 
