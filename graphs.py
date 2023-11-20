@@ -1,68 +1,41 @@
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-def read_data(file_path):
-    with open(file_path) as f:
-        lines = f.readlines()
+def plot_and_save_graph(df, num_cores, baseline_data=None):
+    grouped_data = df.groupby('cidades')['tempo'].agg(['mean', 'std'])
 
-    data = {'sequential': {'cores: {'16':[], '17':[], '18':[]}'}, 'parallel': {'cores: {'16':[], '17':[], '18':[]}'}}
-    current_test = None
+    plt.errorbar(grouped_data.index, grouped_data['mean'], yerr=grouped_data['std'], label=f'{num_cores} cores',
+                 capsize=5, elinewidth=1, marker='o', markersize=5, color='blue')
+    
+    if baseline_data is not None:
+        baseline_grouped = baseline_data.groupby('cidades')['tempo'].agg(['mean', 'std'])
+        plt.errorbar(baseline_grouped.index, baseline_grouped['mean'], yerr=baseline_grouped['std'],
+                     label='Baseline', linestyle='-', color='red', capsize=5, elinewidth=1, marker='s', markersize=5)
 
-    for line in lines:
-        line = line.strip()
-
-        if not line or line == 'ALL DONE':
-            continue  # Ignore linhas vazias e a linha final
-
-        if line.startswith('Starting test round...'):
-            current_test = None
-            continue
-
-        if line.startswith('Sequential data'):
-            current_test = 'sequential'
-            continue
-
-        if line.startswith('Parallel data'):
-            current_test = 'parallel'
-            continue
-
-        if line.startswith('16 cities'):
-            try:
-                cores = int(16)
-                current_test += f'_{cores}'
-                data[current_test] = {'times': []}
-            except (ValueError, IndexError):
-                print(f"Ignorando linha inválida: {line}")
-                current_test = None
-            continue
-
-        try:
-            time = float(line)
-            data[current_test]['times'].append(time)
-        except ValueError:
-            print(f"Ignorando linha inválida: {line}")
-
-    return data
-
-def plot_graphs(data):
-    for test, values in data.items():
-        if 'times' not in values:
-            continue
-
-        num_cities = len(values['times'])
-        mean_time = np.mean(values['times'])
-        std_dev = np.std(values['times'])
-
-        plt.scatter(num_cities, mean_time, label=f'{test} cores')
-        plt.errorbar(num_cities, mean_time, yerr=std_dev, linestyle='None')
-
-    plt.xlabel('Number of Cities')
-    plt.ylabel('Time')
-    plt.title('Test Results')
+    plt.xticks(np.arange(min(grouped_data.index), max(grouped_data.index)+1, 1))
+    plt.yticks(np.arange(50, 1400, 50))
+    plt.xlabel('Número de Cidades')
+    plt.ylabel('Tempo de Execução')
+    plt.title(f'Tempo de Execução Médio com Desvio Padrão para {num_cores} Cores')
     plt.legend()
-    plt.show()
+    plt.grid(True)
+    plt.savefig(f'{file_name}_{num_cores}cores.png')
+    plt.clf()  # Limpar a figura para o próximo gráfico
 
-if __name__ == "__main__":
-    file_path = 'results.st'  # Substitua pelo caminho real do seu arquivo
-    data = read_data(file_path)
-    plot_graphs(data)
+# Leia os arquivos CSV
+file_name = 'paralela'
+df = pd.read_csv(f'{file_name}.csv', delimiter=';')
+
+baseline_file_name = 'sequencial'
+baseline_data = pd.read_csv(f'{baseline_file_name}.csv', delimiter=';')
+
+# Filtrar dados por número de cores
+cores_2 = df[df['cores'] == 2]
+cores_3 = df[df['cores'] == 3]
+cores_4 = df[df['cores'] == 4]
+
+# Criar gráficos e salvar para cada número de cores
+plot_and_save_graph(cores_2, 2, baseline_data)
+plot_and_save_graph(cores_3, 3, baseline_data)
+plot_and_save_graph(cores_4, 4, baseline_data)

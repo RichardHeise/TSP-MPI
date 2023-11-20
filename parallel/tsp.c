@@ -177,15 +177,18 @@ int run_tsp() {
     path[0] = 0;
     paths[0] = 1;
 
-    for (int i = rank + 1; i < nb_towns; i += procs) {
+    int chunk_size = (nb_towns - 1) / procs + 1;
+    int start = rank * chunk_size + 1;
+    int end = (rank + 1) * chunk_size;
 
+    if (end > nb_towns)
+        end = nb_towns;
+
+    for (int i = start; i < end; i++) {
         path[1] = i;
         paths[i] = 1;
-
         tsp(2, dist_to_origin[i], path, paths);
-
         paths[i] = 0;
-
     }
 
     // Deallocate memory for non-zero rank processes

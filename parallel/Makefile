@@ -4,7 +4,7 @@ CC=mpicc
 
 RM=rm -f
 
-EXEC=tspws
+EXEC=tsp
 
 all: $(EXEC)
 
