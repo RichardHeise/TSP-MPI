@@ -11,7 +11,7 @@ def plot_and_save_graph(df, num_cores, baseline_data=None):
     if baseline_data is not None:
         baseline_grouped = baseline_data.groupby('cidades')['tempo'].agg(['mean', 'std'])
         plt.errorbar(baseline_grouped.index, baseline_grouped['mean'], yerr=baseline_grouped['std'],
-                     label='Baseline', linestyle='-', color='red', capsize=5, elinewidth=1, marker='s', markersize=5)
+                     label='Sequencial', linestyle='-', color='red', capsize=5, elinewidth=1, marker='s', markersize=5)
 
     plt.xticks(np.arange(min(grouped_data.index), max(grouped_data.index)+1, 1))
     plt.yticks(np.arange(50, 1400, 50))
@@ -34,8 +34,10 @@ baseline_data = pd.read_csv(f'{baseline_file_name}.csv', delimiter=';')
 cores_2 = df[df['cores'] == 2]
 cores_3 = df[df['cores'] == 3]
 cores_4 = df[df['cores'] == 4]
+cores_8 = df[df['cores'] == 8]
 
 # Criar gráficos e salvar para cada número de cores
 plot_and_save_graph(cores_2, 2, baseline_data)
 plot_and_save_graph(cores_3, 3, baseline_data)
 plot_and_save_graph(cores_4, 4, baseline_data)
+plot_and_save_graph(cores_8, 8, baseline_data)
