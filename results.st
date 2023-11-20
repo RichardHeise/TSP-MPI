@@ -58,7 +58,7 @@ Sequential data:
 
 Parallel data:
 
-Testing with OMP_NUM_THREADS=2
+Testing with 2 cores
 
 16 cities with 2 cores
 29.61
@@ -114,7 +114,7 @@ Testing with OMP_NUM_THREADS=2
 86.22
 40.08
 
-Testing with OMP_NUM_THREADS=3
+Testing with 3 cores
 
 16 cities with 3 cores
 20.81
@@ -170,7 +170,7 @@ Testing with OMP_NUM_THREADS=3
 73.16
 79.42
 
-Testing with OMP_NUM_THREADS=4
+Testing with 4 cores
 
 16 cities with 4 cores
 12.58
