@@ -126,7 +126,11 @@ int run_tsp() {
     path[0] = 0;
     paths[0] = 1;
     
+    double start_time, end_time;
+    start_time = get_time(); // Início da medição de tempo
     tsp (1, 0, path);
+    end_time = get_time(); // Término da medição de tempo
+    printf("paralelizavel: %f segundos\n", end_time - start_time);
 
     free(path);
     free(paths);
@@ -146,7 +150,7 @@ int main (int argc, char **argv) {
             start_time = get_time(); // Início da medição de tempo
             printf("%d\n", run_tsp());
             end_time = get_time(); // Término da medição de tempo
-            printf("Tempo total: %.2f segundos\n", end_time - start_time);
+            printf("Tempo total: %f segundos\n", end_time - start_time);
         }
     return 0;
 }
